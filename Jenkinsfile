@@ -1,21 +1,24 @@
-pipeline{
-    agent any
-
-    tools {
-         maven 'maven'
-         jdk 'java'
+pipeline {
+    agent any 
+    environment {
+        PATH='/opt/maven/maven/bin:$PATH'
     }
-
-    stages{
-        stage('checkout'){
-            steps{
-                checkout([$class: 'GitSCM', branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[credentialsId: 'github access', url: 'https://github.com/sreenivas449/java-hello-world-with-maven.git']]])
+    stages {
+        stage ('BUILD'){
+        steps {
+            echo 'The Build is Starting'
+            sh 'mvn clean deploy'
+            echo 'The Build is Stopped'
+         }
+        }
+        stage ('sonarqube analysis') {
+            environment {
+                scannerHome = tool 'saidemy-sonar-scanner'
+             }
+             steps {
+                 withSonarQubeEnv ('saidemy-sonarqube-server')
+                 sh '${scannerHome}/bin/sonar-scanner'
+              }
             }
         }
-        stage('build'){
-            steps{
-               bat 'mvn package'
-            }
-        }
     }
-}
